@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -48,12 +51,22 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
+            'surname'=> 'required|string|min:6',
+            'birthday'=> 'required|string|min:6',
+            'classroom'=> 'required|string|min:6',
+            'phone'=> 'required|string|min:6',
+            'image'=> 'required|string|min:6',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'surname' => $request->surname,
+            'birthday'=> $request->birthday,
+            'classroom'=> $request->classroom,
+            'phone'=> $request->phone,
+            'image' => $request->image,
         ]);
 
         $token = Auth::login($user);
