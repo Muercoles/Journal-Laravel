@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -54,10 +55,23 @@ class AuthController extends Controller
             'surname'=> 'required|string|min:6',
             'birthday'=> 'required|string|min:6',
             'classroom'=> 'required|string|min:6',
-            'phone'=> 'required|string|min:6',
-            'image'=> 'required|string|min:6',
+            'phone'=> 'required|string|min:6'
         ]);
-
+//        if ($request->has('image')) {
+//            $dir = $_SERVER['DOCUMENT_ROOT'];
+//            $year = date('Y');
+//            $month = date('m');
+//            $basePath = $dir . '/uploads/' . $year . '/' . $month;
+//            if (!file_exists($basePath)) {
+//                mkdir($basePath, 0777, true);
+//            }
+//            $filename = uniqid() . '.' . $request->file("image")->getClientOriginalExtension();
+//            $fileSave = $basePath . '/' . $filename;
+//            $this->image_resize(700, 700, $fileSave, 'image');
+//            $input["image"] = $year . '/' . $month . '/' . $filename;
+//        } else {
+//            $input["image"] = null;
+//        }
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -66,7 +80,7 @@ class AuthController extends Controller
             'birthday'=> $request->birthday,
             'classroom'=> $request->classroom,
             'phone'=> $request->phone,
-            'image' => $request->image,
+            'image' => $request->image
         ]);
 
         $token = Auth::login($user);
@@ -79,5 +93,48 @@ class AuthController extends Controller
                 'type' => 'bearer',
             ]
         ]);
+    }
+
+   public function image_resize($width, $height, $path, $inputName)
+    {
+        list($w, $h) = getimagesize($_FILES[$inputName]['tmp_name']);
+        $maxSize = 0;
+        if (($w > $h) and ($width > $height))
+            $maxSize = $width;
+        else
+            $maxSize = $height;
+        $width = $maxSize;
+        $height = $maxSize;
+        $ration_orig = $w / $h;
+        if (1 > $ration_orig)
+            $width = ceil($height * $ration_orig);
+        else
+            $height = ceil($width / $ration_orig);
+
+        $imgString = file_get_contents($_FILES[$inputName]['tmp_name']);
+        $image = imagecreatefromstring($imgString);
+
+        $tmp = imagecreatetruecolor($width, $height);
+        imagecopyresampled($tmp, $image,
+            0, 0,
+            0, 0,
+            $width, $height,
+            $w, $h);
+
+        switch ($_FILES[$inputName]['type']) {
+            case 'image/jpeg':
+                imagejpeg($tmp, $path, 30);
+                break;
+            case 'image/png':
+                imagepng($tmp, $path, 0);
+                break;
+            case 'image/gif':
+                imagegif($tmp, $path);
+                break;
+        }
+        return $path;
+
+        imagedestroy($image);
+        imagedestroy($tmp);
     }
 }
