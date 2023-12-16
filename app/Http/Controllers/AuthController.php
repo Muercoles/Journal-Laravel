@@ -18,7 +18,15 @@ class AuthController extends Controller
             'message' => 'Successfully logged out',
         ]);
     }
+    public function getAllUsers()
+    {
+        $users = User::select('id', 'name')->get();
 
+        return response()->json([
+            'status' => 'success',
+            'users' => $users,
+        ]);
+    }
     public function login(Request $request)
     {
         $request->validate([
